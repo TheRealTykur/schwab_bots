@@ -1,4 +1,4 @@
-# Schwab Daily DCA Bot
+# Schwab Dollar Cost Average Bot
 
 Runs once a day. Buys a fixed dollar amount of one ticker every trading
 day. That's it, no dip logic, no selling, just a daily buy.
@@ -6,8 +6,8 @@ day. That's it, no dip logic, no selling, just a daily buy.
 **This places real trades with real money once you turn off `DRY_RUN`.
 Read this whole file before you do that.**
 
-Use case.  Charles Schwab allows for reacurring investments into Mutual Funds, but not 
-into Exchange-Traded Funds(ETF).  This bot is used for a niche of Dollar Cost Averaging
+Use case.  Charles Schwab allows for reoccurring investments into Mutual Funds, but not 
+into Exchange-Traded Funds (ETF).  This bot is used for a niche of Dollar Cost Averaging
 into a low cost ETF.
 
 ## 1. Get Schwab API credentials
