@@ -19,6 +19,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
 import config
+from support import schwab_utils as su
 
 try:
     from schwab.auth import easy_client
@@ -41,58 +42,6 @@ console = logging.StreamHandler(sys.stdout)
 console.setLevel(logging.INFO)
 logging.getLogger().addHandler(console)
 log = logging.getLogger("schwab_bot")
-
-
-# --- Schwab client -----------------------------------------------------------
-
-def get_client():
-    if not config.API_KEY or not config.APP_SECRET:
-        log.error("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
-        sys.exit(1)
-    client = easy_client(
-        api_key=config.API_KEY,
-        app_secret=config.APP_SECRET,
-        callback_url=config.CALLBACK_URL,
-        token_path=config.TOKEN_PATH,
-    )
-    return client
-
-
-def get_account_hash(client):
-    if config.ACCOUNT_HASH:
-        return config.ACCOUNT_HASH
-
-    resp = client.get_account_numbers()
-    resp.raise_for_status()
-    accounts = resp.json()
-    if not accounts:
-        raise RuntimeError("No linked Schwab accounts found for this token.")
-    if len(accounts) > 1:
-        log.warning(
-            "Multiple linked accounts found and ACCOUNT_HASH is not set in "
-            "config.py -- defaulting to the first one (%s). Run "
-            "list_accounts.py to see all of them and set ACCOUNT_HASH "
-            "explicitly to avoid relying on this default.",
-            accounts[0]["accountNumber"],
-        )
-    return accounts[0]["hashValue"]
-
-
-def get_current_price(client, symbol):
-    resp = client.get_quote(symbol)
-    resp.raise_for_status()
-    data = resp.json()
-    quote = data[symbol]["quote"]
-    # lastPrice is the most recent trade price
-    return float(quote["lastPrice"])
-
-
-def get_cash_balance(client, account_hash):
-    resp = client.get_account(account_hash)
-    resp.raise_for_status()
-    data = resp.json()
-    balances = data.get("securitiesAccount",{}).get("currentBalances",{})
-    return float(balances.get("cashBalance",0))
 
 
 # --- order placement -----------------------------------------------------------
@@ -139,13 +88,14 @@ def main():
 
     log.info("=== Run start %s (DRY_RUN=%s) ===", today_str, config.DRY_RUN)
 
-    client = get_client()
-    account_hash = get_account_hash(client)
-    price = get_current_price(client, config.SYMBOL)
+    client = su.get_client()
+    account_hash = su.get_account_hash(client)
+    price = su.get_current_price(client, config.SYMBOL)
     log.info("%s current price: $%.2f", config.SYMBOL, price)
 
     required_cash = price* config.DAILY_SHARE_QUANTITY * config.CASH_BUFFER_MULTIPLIER
-    cash_balance = get_cash_balance(client, account_hash)
+    cash_balance = su.get_cash_balance(client, account_hash)
+
     log.info(
         "Cash Balance: $%.2f. Required (%.1fx buffer for %d shares @ $%.2f): $%.2f",
         cash_balance, config.CASH_BUFFER_MULTIPLIER, config.DAILY_SHARE_QUANTITY, price, required_cash,

@@ -93,3 +93,12 @@ ACCOUNT_HASH = "the-hash-you-copied"
 If you leave `ACCOUNT_HASH` blank and have multiple accounts, the bot
 defaults to whichever one `get_account_numbers()` happens to return
 first. Do not rely on this if it matters which account gets used.
+
+## 6. WIP schwab_utils
+
+This is a file that is being worked on to expand the future abilities of 
+bots in this project.  
+
+### ideas for the future 
+- ballance bot
+- add more functionality to DCA bot
