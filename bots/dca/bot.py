@@ -15,7 +15,7 @@ DRY_RUN = True in config.py. Test thoroughly in dry-run mode first.
 
 import logging
 import sys
-from bots.dca_bot import config
+from bots.dca import config
 
 # --- logging -----------------------------------------------------------------
 logging.basicConfig(
