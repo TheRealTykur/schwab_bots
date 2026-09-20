@@ -12,7 +12,7 @@ it works instead of re-triggering the browser login.
 """
 
 import sys
-from master_config import config
+from config import config
 
 try:
     from schwab.auth import easy_client
