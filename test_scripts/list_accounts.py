@@ -8,13 +8,11 @@ Run manually:
     python3 list_accounts.py
 """
 
-import os 
 import sys
 
-sys.path.append(os.path.abspath(".."))
+from master_config import config as MC
 
-import config
-import schwab_utils as su
+from support import schwab_utils as su
 
 try:
     from schwab.auth import easy_client
@@ -23,8 +21,24 @@ except ImportError:
     sys.exit(1)
 
 
+###################
+# Returns client
+###################
+def get_client():
+    if not MC.API_KEY or not MC.APP_SECRET:
+        print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
+        sys.exit(1)
+    client = easy_client(
+        api_key=MC.API_KEY,
+        app_secret=MC.APP_SECRET,
+        callback_url=MC.CALLBACK_URL,
+        token_path=MC.TOKEN_PATH,
+    )
+    return client
+
+
 def main():
-    client = su.get_client()
+    client = get_client()
 
     resp = client.get_account_numbers()
     resp.raise_for_status()

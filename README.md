@@ -102,3 +102,5 @@ bots in this project.
 ### ideas for the future 
 - ballance bot
 - add more functionality to DCA bot
+- add in db support
+- add in a locally hosted website view dashboards

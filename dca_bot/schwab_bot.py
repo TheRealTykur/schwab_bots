@@ -30,9 +30,12 @@ log = logging.getLogger("dca_bot")
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
-import config
 
-from support import schwab_utils as su
+from dca_bot import config
+from master_config import config as MC
+
+from support import account as AccountSupport
+from support import market_data as MarketData
 
 try:
     from schwab.auth import easy_client
@@ -43,6 +46,46 @@ except ImportError:
 
 MAX_ORDER_RETRIES = 3
 RETRY_DELAY_SECONDS = 5
+
+###################
+# Returns client
+###################
+def get_client():
+    if not MC.API_KEY or not MC.APP_SECRET:
+        log.error("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
+        sys.exit(1)
+    client = easy_client(
+        api_key=MC.API_KEY,
+        app_secret=MC.APP_SECRET,
+        callback_url=MC.CALLBACK_URL,
+        token_path=MC.TOKEN_PATH,
+    )
+    return client
+
+
+#################################################
+# Returns account hash if it is defined in the 
+# config file otherwise it will fetch the first
+# hash attached to the account
+#################################################
+def get_account_hash(client):
+    if MC.ACCOUNT_HASH:
+        return MC.ACCOUNT_HASH
+
+    resp = client.get_account_numbers()
+    resp.raise_for_status()
+    accounts = resp.json()
+    if not accounts:
+        raise RuntimeError("No linked Schwab accounts found for this token.")
+    if len(accounts) > 1:
+        log.warning(
+            "Multiple linked accounts found and ACCOUNT_HASH is not set in "
+            "master_config.py -- defaulting to the first one (%s). Run "
+            "list_accounts.py to see all of them and set ACCOUNT_HASH "
+            "explicitly to avoid relying on this default.",
+            accounts[0]["accountNumber"],
+        )
+    return accounts[0]["hashValue"]
 
 
 # --- order placement -----------------------------------------------------------
@@ -85,17 +128,17 @@ def place_buy(client, account_hash, symbol, quantity, price):
 
 # --- main -----------------------------------------------------------
 def main():
-    today_str = datetime.now(ZoneInfo(config.Master_Config.LOCAL_TIMEZONE)).strftime("%m/%d/%Y")
+    today_str = datetime.now(ZoneInfo(MC.LOCAL_TIMEZONE)).strftime("%m/%d/%Y")
 
     log.info("=== Run start %s (DRY_RUN=%s) ===", today_str, config.DRY_RUN)
 
-    client = su.get_client(log)
-    account_hash = su.get_account_hash(client, log)
-    price = su.get_current_price(client, config.SYMBOL)
+    client = get_client()
+    account_hash = get_account_hash(client)
+    price = MarketData.get_current_price(client, config.SYMBOL)
     log.info("%s current price: $%.2f", config.SYMBOL, price)
 
     required_cash = price* config.DAILY_SHARE_QUANTITY * config.CASH_BUFFER_MULTIPLIER
-    cash_balance = su.get_cash_balance(client, account_hash)
+    cash_balance = AccountSupport.get_cash_balance(client, account_hash)
 
     log.info(
         "Cash Balance: $%.2f. Required (%.1fx buffer for %d shares @ $%.2f): $%.2f",

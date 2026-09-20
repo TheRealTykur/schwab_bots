@@ -4,11 +4,6 @@ Edit the values below. Nothing here talks to the network.
 """
 
 import os
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-import Master_Config
 
 # --- Strategy settings -------------------------------------------------------
 # Target allocation as a fraction of TOTAL account value (cash + all three
@@ -29,5 +24,5 @@ ACCOUNT_HASH = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 DRY_RUN = True                 # True = log what would happen, place NO real orders
 
 # --- Bookkeeping --------------------------------------------------------------
-LOG_PATH = os.path.join(os.path.dirname(__file__), "rebalance_log.txt")
+LOG_PATH = os.path.join(os.path.dirname(__file__), "rebalance_bot.log")
 

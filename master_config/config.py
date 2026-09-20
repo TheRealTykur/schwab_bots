@@ -21,5 +21,3 @@ TOKEN_PATH = os.path.join(os.path.dirname(__file__), "schwab_token.json")
 # which shifts the calendar date near midnight local time). Use an IANA
 # timezone name, e.g. "America/New_York".
 LOCAL_TIMEZONE = "America/New_York"
-
-

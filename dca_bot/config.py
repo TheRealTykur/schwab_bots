@@ -4,12 +4,6 @@ Edit the values below. Nothing here talks to the network.
 """
 
 import os
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-import Master_Config
 
 # Where schwab-py will cache your OAuth token after the one-time browser login.
 TOKEN_PATH = os.path.join(os.path.dirname(__file__), "schwab_token.json")
@@ -26,7 +20,7 @@ CASH_BUFFER_MULTIPLIER = 1.05  # Used to prevent account Cash from getting to lo
 ACCOUNT_HASH = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # --- Safety rails -------------------------------------------------------------
-DRY_RUN = False                 # True = log what would happen, place NO real orders
+DRY_RUN = True                 # True = log what would happen, place NO real orders
 
 # --- Bookkeeping --------------------------------------------------------------
 LOG_PATH = os.path.join(os.path.dirname(__file__), "dca_bot.log")
