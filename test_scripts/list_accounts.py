@@ -9,7 +9,6 @@ Run manually:
 """
 
 import sys
-
 import config
 
 try:
