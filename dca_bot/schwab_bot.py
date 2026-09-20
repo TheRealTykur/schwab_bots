@@ -15,10 +15,23 @@ DRY_RUN = True in config.py. Test thoroughly in dry-run mode first.
 
 import logging
 import sys
+
+# --- logging -----------------------------------------------------------------
+logging.basicConfig(
+    filename=config.LOG_PATH,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+console = logging.StreamHandler(sys.stdout)
+console.setLevel(logging.INFO)
+logging.getLogger().addHandler(console)
+log = logging.getLogger("dca_bot")
+
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
 import config
+
 from support import schwab_utils as su
 
 try:
@@ -30,18 +43,6 @@ except ImportError:
 
 MAX_ORDER_RETRIES = 3
 RETRY_DELAY_SECONDS = 5
-
-# --- logging -----------------------------------------------------------------
-
-logging.basicConfig(
-    filename=config.LOG_PATH,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
-console = logging.StreamHandler(sys.stdout)
-console.setLevel(logging.INFO)
-logging.getLogger().addHandler(console)
-log = logging.getLogger("schwab_bot")
 
 
 # --- order placement -----------------------------------------------------------
@@ -84,12 +85,12 @@ def place_buy(client, account_hash, symbol, quantity, price):
 
 # --- main -----------------------------------------------------------
 def main():
-    today_str = datetime.now(ZoneInfo(config.LOCAL_TIMEZONE)).strftime("%m/%d/%Y")
+    today_str = datetime.now(ZoneInfo(config.Master_Config.LOCAL_TIMEZONE)).strftime("%m/%d/%Y")
 
     log.info("=== Run start %s (DRY_RUN=%s) ===", today_str, config.DRY_RUN)
 
-    client = su.get_client()
-    account_hash = su.get_account_hash(client)
+    client = su.get_client(log)
+    account_hash = su.get_account_hash(client, log)
     price = su.get_current_price(client, config.SYMBOL)
     log.info("%s current price: $%.2f", config.SYMBOL, price)
 

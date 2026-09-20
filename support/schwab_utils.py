@@ -21,12 +21,22 @@ see schwab_utils_test.py.
 """
 import os 
 import sys
+import logging
 
 sys.path.append(os.path.abspath(".."))
 
 from datetime import datetime, timedelta, timezone
 import config
 
+try:
+    from schwab.auth import easy_client
+    from schwab.orders.equities import equity_buy_market
+except ImportError:
+    print("schwab-py is not installed. Run: pip install schwab-py")
+    sys.exit(1)
+
+
+log = logging.getLogger(__name__)
 
 # Standard trading-day approximations for each period -- not exact
 # calendar dates (e.g. "a month ago" is approximated as 21 trading days
@@ -37,19 +47,32 @@ PERIOD_TRADING_DAYS = {
     "year": 252,
 }
 
-#########################################
-# Most recent trade price for `symbol`.
-#########################################
+#########################################################
+# Returns float of most recent trade price for `symbol`.
+#########################################################
 def get_current_price(client, symbol):
     resp = client.get_quote(symbol)
     resp.raise_for_status()
     data = resp.json()
     return float(data[symbol]["quote"]["lastPrice"])
 
+########################################################
+# Returns {ticker: last_price} for a list of tickers.
+########################################################
+def get_current_prices(client, symbols):
+    resp = client.get_quotes(symbols)
+    resp.raise_for_status()
+    data = resp.json()
+    prices = {}
+    for symbol in symbols:
+        quote = data[symbol]["quote"]
+        # lastPrice is the most recent trade price
+        prices[symbol] = float(quote["lastPrice"])
+    return prices
 
-###############################################
-# Current cash balance for the given account.
-###############################################
+########################################################
+# Returns float for cash balance for the given account.
+########################################################
 def get_cash_balance(client, account_hash):
     resp = client.get_account(account_hash)
     resp.raise_for_status()
@@ -278,15 +301,15 @@ def detect_ma_crossover(client, symbol, short_window=50, long_window=200):
 ###################
 # Returns client
 ###################
-def get_client():
-    if not config.API_KEY or not config.APP_SECRET:
+def get_client(log):
+    if not config.Master_Config.API_KEY or not config.Master_Config.APP_SECRET:
         log.error("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     client = easy_client(
-        api_key=config.API_KEY,
-        app_secret=config.APP_SECRET,
-        callback_url=config.CALLBACK_URL,
-        token_path=config.TOKEN_PATH,
+        api_key=config.Master_Config.API_KEY,
+        app_secret=config.Master_Config.APP_SECRET,
+        callback_url=config.Master_Config.CALLBACK_URL,
+        token_path=config.Master_Config.TOKEN_PATH,
     )
     return client
 
@@ -296,9 +319,9 @@ def get_client():
 # config file otherwise it will fetch the first
 # hash attached to the account
 #################################################
-def get_account_hash(client):
-    if config.ACCOUNT_HASH:
-        return config.ACCOUNT_HASH
+def get_account_hash(client, log):
+    if config.Master_Config.ACCOUNT_HASH:
+        return config.Master_Config.ACCOUNT_HASH
 
     resp = client.get_account_numbers()
     resp.raise_for_status()
@@ -308,9 +331,32 @@ def get_account_hash(client):
     if len(accounts) > 1:
         log.warning(
             "Multiple linked accounts found and ACCOUNT_HASH is not set in "
-            "config.py -- defaulting to the first one (%s). Run "
+            "config.Master_Config.py -- defaulting to the first one (%s). Run "
             "list_accounts.py to see all of them and set ACCOUNT_HASH "
             "explicitly to avoid relying on this default.",
             accounts[0]["accountNumber"],
         )
     return accounts[0]["hashValue"]
+
+
+######################################################################
+# Returns (cash, position_values) where position_values is a dict of
+# {ticker: market_value} for whichever of config.TARGETS are currently
+# held (tickers with no position at all are treated as $0).
+######################################################################
+def get_account_snapshot(client, account_hash):
+    resp = client.get_account(account_hash, fields=[client.Account.Fields.POSITIONS])
+    resp.raise_for_status()
+    data = resp.json()
+
+    securities_account = data["securitiesAccount"]
+    balances = securities_account["currentBalances"]
+    cash = float(balances.get("cashBalance", balances.get("cashAvailableForTrading", 0)))
+
+    position_values = {ticker: 0.0 for ticker in config.TARGETS}
+    for pos in securities_account.get("positions", []):
+        symbol = pos["instrument"]["symbol"]
+        if symbol in position_values:
+            position_values[symbol] = float(pos.get("marketValue", 0))
+
+    return cash, position_values
