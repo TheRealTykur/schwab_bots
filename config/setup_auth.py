@@ -12,7 +12,7 @@ it works instead of re-triggering the browser login.
 """
 
 import sys
-from config import config
+import master
 
 try:
     from schwab.auth import easy_client
@@ -22,20 +22,20 @@ except ImportError:
 
 
 def get_client():
-    if not config.API_KEY or not config.APP_SECRET:
+    if not master.API_KEY or not master.APP_SECRET:
         print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     return easy_client(
-        api_key=config.API_KEY,
-        app_secret=config.APP_SECRET,
-        callback_url=config.CALLBACK_URL,
-        token_path=config.TOKEN_PATH,
+        api_key=master.API_KEY,
+        app_secret=master.APP_SECRET,
+        callback_url=master.CALLBACK_URL,
+        token_path=master.TOKEN_PATH,
     )
 
 
 def main():
     print("Setting up Schwab authentication...")
-    print(f"Token will be saved to: {config.TOKEN_PATH}\n")
+    print(f"Token will be saved to: {master.TOKEN_PATH}\n")
 
     client = get_client()
 
@@ -45,7 +45,7 @@ def main():
 
     print("\nSuccess. Authentication is working.")
     print(f"Found {len(accounts)} linked account(s).")
-    print(f"Token saved at: {config.TOKEN_PATH}")
+    print(f"Token saved at: {master.TOKEN_PATH}")
     print("\nIf this ran on your laptop/desktop, copy schwab_token.json over")
     print("to the Pi now (into the same folder as config.py there).")
 
