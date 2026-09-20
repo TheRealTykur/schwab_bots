@@ -10,9 +10,7 @@ Run manually:
 
 import sys
 
-from config import master as master_config
-
-from support import schwab_utils as su
+import config
 
 try:
     from schwab.auth import easy_client
@@ -25,14 +23,14 @@ except ImportError:
 # Returns client
 ###################
 def get_client():
-    if not master_config.API_KEY or not master_config.APP_SECRET:
+    if not config.API_KEY or not config.APP_SECRET:
         print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     client = easy_client(
-        api_key=master_config.API_KEY,
-        app_secret=master_config.APP_SECRET,
-        callback_url=master_config.CALLBACK_URL,
-        token_path=master_config.TOKEN_PATH,
+        api_key=config.API_KEY,
+        app_secret=config.APP_SECRET,
+        callback_url=config.CALLBACK_URL,
+        token_path=config.TOKEN_PATH,
     )
     return client
 
