@@ -3,6 +3,7 @@ Master Configuration used in all bots.
 """
 
 import os
+from pathlib import Path
 
 # --- Schwab API credentials -------------------------------------------------
 # Create an app at https://developer.schwab.com to get these.
@@ -13,7 +14,9 @@ APP_SECRET = os.environ.get("SCHWAB_APP_SECRET", "")
 CALLBACK_URL = os.environ.get("SCHWAB_CALLBACK_URL", "https://127.0.0.1:8182")
 
 # Where schwab-py will cache your OAuth token after the one-time browser login.
-TOKEN_PATH = os.path.join(os.path.dirname(__file__), "schwab_token.json")
+ROOT_PATH = Path(__file__).resolve().parent.parent
+TOKEN_PATH = ROOT_PATH / "config" / "tokens" / "schwab_token.json"
+
 
 # The "Date" logged for each buy is computed in this timezone explicitly,
 # rather than relying on the machine's system timezone being set correctly

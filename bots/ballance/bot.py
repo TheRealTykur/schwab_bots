@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo
 from support import account as AccountSupport
 from support import market_data as MarketData
 
-from ballance_bot import config
+from bots.ballance import config
 from config import master as master_config
 
 try:
@@ -136,8 +136,8 @@ def get_client():
 # hash attached to the account
 #################################################
 def get_account_hash(client):
-    if master_config.ACCOUNT_HASH:
-        return master_config.ACCOUNT_HASH
+    if config.ACCOUNT_HASH:
+        return config.ACCOUNT_HASH
 
     resp = client.get_account_numbers()
     resp.raise_for_status()

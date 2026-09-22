@@ -15,6 +15,7 @@ DRY_RUN = True in config.py. Test thoroughly in dry-run mode first.
 
 import logging
 import sys
+from bots.dca import config
 
 # --- logging -----------------------------------------------------------------
 logging.basicConfig(
@@ -31,7 +32,6 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import time
 
-from dca_bot import config
 from config import master as master_config
 
 from support import account as AccountSupport
@@ -69,8 +69,8 @@ def get_client():
 # hash attached to the account
 #################################################
 def get_account_hash(client):
-    if master_config.ACCOUNT_HASH:
-        return master_config.ACCOUNT_HASH
+    if config.ACCOUNT_HASH:
+        return config.ACCOUNT_HASH
 
     resp = client.get_account_numbers()
     resp.raise_for_status()
