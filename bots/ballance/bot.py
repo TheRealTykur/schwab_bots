@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo
 from support import account as AccountSupport
 from support import market_data as MarketData
 
-from bots.ballance_bot import config
+from bots.ballance import config
 from config import master as master_config
 
 try:
