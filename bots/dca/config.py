@@ -5,9 +5,6 @@ Edit the values below. Nothing here talks to the network.
 
 import os
 
-# Where schwab-py will cache your OAuth token after the one-time browser login.
-TOKEN_PATH = os.path.join(os.path.dirname(__file__), "schwab_token.json")
-
 # --- Strategy settings -------------------------------------------------------
 SYMBOL = "????"                # the single ticker you're dollar-cost-averaging into
 DAILY_SHARE_QUANTITY = 1       # fixed number of whole shares to buy each trading day
