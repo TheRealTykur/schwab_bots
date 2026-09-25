@@ -310,3 +310,5 @@ The following items were identified during the code review and still need to be 
 - [ ] **Add automated tests**
   - Particularly for the rebalance allocation logic and order-planning behavior.
 
+- [ ] **Add Database Support**
+  - Add writing to a PostgreSQL database
