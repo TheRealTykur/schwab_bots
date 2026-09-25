@@ -1,106 +1,322 @@
-# Schwab Dollar Cost Average Bot
+# Schwab Bots
 
-Runs once a day. Buys a fixed quantity of one ticker every trading
-day.
+A small Python project containing automated Schwab trading bots.
 
-**This places real trades with real money once you turn off `DRY_RUN`.
-Read this whole file before you do that.**
+The repository currently contains:
 
-Use case.  Charles Schwab allows for recurring investments into Mutual Funds, but not 
-into Exchange-Traded Funds (ETF).  This bot is used for a niche of Dollar Cost Averaging
-into a low-cost ETF.
+- **DCA bot**: buys a configured number of shares of one ticker.
+- **Rebalance bot**: buys underweight securities based on configured target allocations.
+- **Shared configuration**: Schwab API credentials, callback URL, token location, and timezone.
+- **Support code**: shared account and market-data utilities.
+- **Test scripts**: tools for checking authentication and linked Schwab accounts.
 
-## 1. Get Schwab API credentials
+> **Warning:** These bots can place real trades. Keep `DRY_RUN = True` while setting up and testing.
 
-1.  Go to https://developer.schwab.com and create a developer account.
-2.  Register an app requesting the "Accounts and Trading" and "Market
-    Data" products. Schwab has to approve this. It can take a few days.
-3.  Set a callback URL, e.g., `https://127.0.0.1:8182` (must use https,
-    even for localhost).
-4.  Once approved, you'll get an API Key (client ID) and App Secret.
+---
 
-## 2. Set environment variables
+## 1. Get Schwab API Credentials
 
-Don't put real credentials in `config.py`.
+Create a Schwab Developer account:
 
-``` bash
+https://developer.schwab.com/
+
+Create/register an application with:
+
+- **Accounts and Trading**
+- **Market Data**
+
+Use this callback URL:
+
+```text
+https://127.0.0.1:8182
+```
+
+The callback URL must use `https`, even though it points to localhost.
+
+Once the application is approved, Schwab provides:
+
+- **App Key / API Key**
+- **App Secret**
+
+You will use these as environment variables rather than putting them directly into the Python code.
+
+---
+
+## 2. Set Up the Environment on Unix / Linux
+
+From the repository root, export the Schwab credentials:
+
+```bash
 export SCHWAB_API_KEY="your-api-key"
 export SCHWAB_APP_SECRET="your-app-secret"
 export SCHWAB_CALLBACK_URL="https://127.0.0.1:8182"
 ```
 
-These variables will apply to the current shell session. If you want
-them to be available automatically in future terminal sessions, add the
-`export` commands to your shell startup file, such as `~/.bashrc` or
-`~/.zshrc`, and then restart your terminal or run:
+These variables only apply to the current shell session.
 
-``` bash
+For persistent environment variables, add them to your shell configuration file, such as:
+
+```bash
+~/.bashrc
+```
+
+or:
+
+```bash
+~/.zshrc
+```
+
+Then reload the configuration:
+
+```bash
 source ~/.bashrc
 ```
 
-If the bot will be run by `cron`, make sure the environment variables
-are available to the cron job as well.
+Do not commit your credentials to Git.
 
-## 3. Install dependencies
+---
 
-``` bash
+## 3. Install Dependencies
+
+Create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the project dependencies:
+
+```bash
 python3 -m pip install -r requirements.txt
 ```
 
-## 4. First run: one-time browser login
+If the virtual environment is already active, this is sufficient:
 
-The first time you run the bot, `schwab-py` will open a browser window
-and ask you to log into Schwab and authorize the app.
-
-After that, it caches a refresh token in `schwab_token.json` next to the
-script, and future runs are non-interactive, which is what makes
-scheduling possible.
-
-Run it manually once:
-
-``` bash
-python3 schwab_bot.py
+```bash
+pip install -r requirements.txt
 ```
 
-Do this with `DRY_RUN = True` (the default in `config.py`) so no real
-orders get placed while you're testing the auth flow.
+---
 
-## 5. Edit config.py
+## 4. Get the Schwab Token
 
-Open `config.py` and set:
+The project uses `schwab-py` to handle Schwab authentication.
 
--   `SYMBOL` - the ticker to buy
--   `DAILY_SHARE_QUANTITY` - fixed number of whole shares to buy each
-    day
--   `CASH_BUFFER_MULTIPLIER` - fixed percentage to not let the bot place
-    if the cash position falls too low.
+First, make sure the token directory exists:
 
-**If more than one Schwab account is linked to this API token**, run:
-
-``` bash
-python3 list_accounts.py
+```bash
+mkdir -p config/tokens
 ```
 
-This prints each linked account's number, hash, type, and cash balance
-so you can tell them apart.
+Then run:
 
-Copy the hash of the one you want the bot to use into `config.py`:
-
-``` python
-ACCOUNT_HASH = "the-hash-you-copied"
+```bash
+python3 config/setup_auth.py
 ```
 
-If you leave `ACCOUNT_HASH` blank and have multiple accounts, the bot
-defaults to whichever one `get_account_numbers()` happens to return
-first. Do not rely on this if it matters which account gets used.
+The authentication process will open the Schwab authorization flow.
 
-## 6. WIP schwab_utils
+After authorization, the OAuth token is stored at:
 
-This is a file that is being worked on to expand the future abilities of 
-bots in this project.  
+```text
+config/tokens/schwab_token.json
+```
 
-### ideas for the future 
-- ballance bot
-- add more functionality to DCA bot
-- add in db support
-- add in a locally hosted website view dashboards
+The bots use this token for subsequent Schwab API requests.
+
+The token file should **not** be committed to Git.
+
+If authentication needs to be repeated, run the setup script again.
+
+---
+
+## 5. Configure the Bots
+
+### DCA Bot
+
+Configuration:
+
+```text
+bots/dca/config.py
+```
+
+The main settings are:
+
+```python
+SYMBOL = "VOO"
+DAILY_SHARE_QUANTITY = 1
+CASH_BUFFER_MULTIPLIER = 1.05
+ACCOUNT_HASH = ""
+DRY_RUN = True
+```
+
+Change these for your account and strategy.
+
+### `SYMBOL`
+
+The ticker the DCA bot will purchase.
+
+Example:
+
+```python
+SYMBOL = "VOO"
+```
+
+### `DAILY_SHARE_QUANTITY`
+
+The number of whole shares to purchase each time the bot runs.
+
+Example:
+
+```python
+DAILY_SHARE_QUANTITY = 1
+```
+
+### `CASH_BUFFER_MULTIPLIER`
+
+Adds a cash buffer above the estimated order cost.
+
+The default is:
+
+```python
+CASH_BUFFER_MULTIPLIER = 1.05
+```
+
+### `ACCOUNT_HASH`
+
+The Schwab account hash to trade in.
+
+If you have multiple Schwab accounts, set this explicitly.
+
+You can use:
+
+```bash
+python3 test_scripts/list_accounts.py
+```
+
+to see the accounts and account hashes available to the authenticated user.
+
+### `DRY_RUN`
+
+Keep this set to:
+
+```python
+DRY_RUN = True
+```
+
+while testing.
+
+Change it to:
+
+```python
+DRY_RUN = False
+```
+
+Only when you are ready for the bot to submit real orders.
+
+---
+
+## 6. Rebalance Bot Configuration
+
+Configuration:
+
+```text
+bots/ballance/config.py
+```
+
+The target allocations are configured in:
+
+```python
+TARGETS = {
+    "SCHD": 0.15,
+    "SCHG": 0.55,
+    "SWPPX": 0.30,
+}
+```
+
+Change the securities and percentages to match the portfolio you want the bot to target.
+
+The allocations should total:
+
+```text
+1.00
+```
+
+The rebalance bot is currently **buy-only**. It does not sell positions to bring them back to target.
+
+Keep:
+
+```python
+DRY_RUN = True
+```
+
+until the strategy has been tested.
+
+---
+
+## 7. Running the Bots
+
+From the repository root, the intended package-style commands are:
+
+```bash
+python3 -m bots.dca.bot
+```
+
+and:
+
+```bash
+python3 -m bots.ballance.bot
+```
+
+The bots do not contain their own scheduler.
+
+For automated execution on Unix/Linux, use something such as:
+
+- `cron`
+- `systemd`
+- another process scheduler
+
+Make sure the bot is only invoked as often as intended. The DCA bot does not currently prevent multiple executions on the same day.
+
+Example cron job:
+```crontab
+31 9 * * 1-5 cd /home/schwab_bots && . /home/.schwab_env && /usr/bin/python3 -m bots.<bot to run>.bot
+```
+---
+
+# Work in Progress
+
+The following items were identified during the code review and still need to be addressed.
+
+- [ ] **Fix the diagnostic script**
+  - `test_scripts/schwab_utils_test.py` references `su`, but `su` is not defined.
+
+- [ ] **Rename `ballance` to `balance`**
+  - The directory is currently spelled `ballance`.
+
+- [ ] **Clean up duplicated configuration**
+  - `test_scripts/config.py` contains configuration that overlaps with `config/master.py`.
+
+- [ ] **Centralize authentication configuration**
+  - Make the test scripts use the same master configuration as the production bots.
+
+- [ ] **Improve `setup_auth.py`**
+  - Make token-directory creation explicit.
+  - Standardize its package imports with the rest of the project.
+
+- [ ] **Verify Schwab API response fields**
+  - Confirm the fields used for account balances, positions, quotes, and market hours against current Schwab API responses.
+
+- [ ] **Update the README commands**
+  - The existing README references commands and paths that do not completely match the current repository structure.
+
+- [ ] **Add protection against duplicate DCA runs**
+  - The DCA bot currently has no internal mechanism preventing multiple purchases if it is accidentally run more than once in a day.
+
+- [ ] **Add automated tests**
+  - Particularly for the rebalance allocation logic and order-planning behavior.
+
+- [ ] **Review live-trading safeguards**
+  - Confirm the dry-run behavior, account selection, cash checks, and order retry behavior before enabling live trading.
+
