@@ -10,7 +10,7 @@ The repository currently contains:
 - **Support code**: shared account and market-data utilities.
 - **Test scripts**: tools for checking authentication and linked Schwab accounts.
 
-> **Warning:** These bots can place real trades. Keep `DRY_RUN = True` while setting up and testing.
+> **Warning:** These bots can place real trades. Keep `DRY_RUN = True` while you set up and test.
 
 ---
 
@@ -38,7 +38,7 @@ Once the application is approved, Schwab provides:
 - **App Key / API Key**
 - **App Secret**
 
-You will use these as environment variables rather than putting them directly into the Python code.
+Use these as environment variables rather than hardcoding them in the Python code.
 
 ---
 
@@ -127,7 +127,7 @@ The bots use this token for subsequent Schwab API requests.
 
 The token file should **not** be committed to Git.
 
-If authentication needs to be repeated, run the setup script again.
+Authentication needs to be repeated once a week; delete the schwab_token on Sundays and run the setup script again.
 
 ---
 
@@ -294,6 +294,9 @@ The following items were identified during the code review and still need to be 
 
 - [ ] **Rename `ballance` to `balance`**
   - The directory is currently spelled `ballance`.
+     
+- [ ] **Add Empty Dir in config**
+  - Did not commit the empty dir in the last push.
 
 - [ ] **Clean up duplicated configuration**
   - `test_scripts/config.py` contains configuration that overlaps with `config/master.py`.
@@ -302,21 +305,8 @@ The following items were identified during the code review and still need to be 
   - Make the test scripts use the same master configuration as the production bots.
 
 - [ ] **Improve `setup_auth.py`**
-  - Make token-directory creation explicit.
   - Standardize its package imports with the rest of the project.
-
-- [ ] **Verify Schwab API response fields**
-  - Confirm the fields used for account balances, positions, quotes, and market hours against current Schwab API responses.
-
-- [ ] **Update the README commands**
-  - The existing README references commands and paths that do not completely match the current repository structure.
-
-- [ ] **Add protection against duplicate DCA runs**
-  - The DCA bot currently has no internal mechanism preventing multiple purchases if it is accidentally run more than once in a day.
 
 - [ ] **Add automated tests**
   - Particularly for the rebalance allocation logic and order-planning behavior.
-
-- [ ] **Review live-trading safeguards**
-  - Confirm the dry-run behavior, account selection, cash checks, and order retry behavior before enabling live trading.
 
