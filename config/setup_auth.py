@@ -41,7 +41,7 @@ def main():
         os.remove(master.TOKEN_PATH)
         print("Old schwab_token.json deleted successfully. Continuing with token generation")
     else:
-        print("The schwab_token.json does not exist. Continuing with token generation")
+        print("The schwab_token does not yet exist. Continuing with token generation")
 
     client = get_client()
 
