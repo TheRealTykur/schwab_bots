@@ -10,7 +10,7 @@ Run this once a week to keep token fresh idealy on Sundays (on a machine with a 
 If schwab_token.json already exists and is still valid, this just confirms
 it works instead of re-triggering the browser login.
 """
-
+import os
 import sys
 import master
 
@@ -36,6 +36,12 @@ def get_client():
 def main():
     print("Setting up Schwab authentication...")
     print(f"Token will be saved to: {master.TOKEN_PATH}\n")
+
+    if os.path.exists(master.TOKEN_PATH):
+        os.remove(master.TOKEN_PATH)
+        print("Old schwab_token.json deleted successfully. Continuing with token generation")
+    else:
+        print("The schwab_token.json does not exist. Continuing with token generation")
 
     client = get_client()
 
