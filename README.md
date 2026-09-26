@@ -222,7 +222,7 @@ Only when you are ready for the bot to submit real orders.
 Configuration:
 
 ```text
-bots/ballance/config.py
+bots/balance/config.py
 ```
 
 The target allocations are configured in:
@@ -266,7 +266,7 @@ python3 -m bots.dca.bot
 and:
 
 ```bash
-python3 -m bots.ballance.bot
+python3 -m bots.balance.bot
 ```
 
 The bots do not contain their own scheduler.
@@ -296,9 +296,6 @@ The following items were identified during the code review and still need to be 
 
 - [ ] **Fix the diagnostic scripts**
   - `debug_scripts` all use old way of inculding before change to modules 
-
-- [ ] **Rename `ballance` to `balance`**
-  - The directory is currently spelled `ballance`.
 
 - [ ] **Clean up duplicated configuration**
   - `debug_scripts/config.py` contains configuration that overlaps with `config/master.py`.
