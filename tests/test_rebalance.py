@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
-from bots.ballance import bot
-from bots.ballance import config
+from bots.balance import bot
+from bots.balance import config
 
 
 def test_plan_buys_returns_empty_for_zero_account_value():
