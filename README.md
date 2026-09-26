@@ -255,7 +255,7 @@ until the strategy has been tested.
 
 ---
 
-## 7. Running the Bots
+## 7. Running the Bots and Unit Tests
 
 From the repository root, the intended package-style commands are:
 
@@ -283,32 +283,31 @@ Example cron job:
 ```crontab
 31 9 * * 1-5 cd /home/schwab_bots && . /home/.schwab_env && /usr/bin/python3 -m bots.<bot to run>.bot
 ```
+
+Running Unit Tests:
+```bash
+python3 -m pytest
+```
 ---
 
 # Work in Progress
 
 The following items were identified during the code review and still need to be addressed.
 
-- [ ] **Fix the diagnostic script**
-  - `test_scripts/schwab_utils_test.py` references `su`, but `su` is not defined.
+- [ ] **Fix the diagnostic scripts**
+  - `debug_scripts` all use old way of inculding before change to modules 
 
 - [ ] **Rename `ballance` to `balance`**
   - The directory is currently spelled `ballance`.
-     
-- [ ] **Add Empty Dir in config**
-  - Did not commit the empty dir in the last push.
 
 - [ ] **Clean up duplicated configuration**
-  - `test_scripts/config.py` contains configuration that overlaps with `config/master.py`.
+  - `debug_scripts/config.py` contains configuration that overlaps with `config/master.py`.
 
 - [ ] **Centralize authentication configuration**
-  - Make the test scripts use the same master configuration as the production bots.
+  - Make the debug scripts use the same master configuration as the production bots.
 
 - [ ] **Improve `setup_auth.py`**
   - Standardize its package imports with the rest of the project.
 
-- [ ] **Add automated tests**
-  - Particularly for the rebalance allocation logic and order-planning behavior.
-
 - [ ] **Add Database Support**
-  - Add writing to a PostgreSQL database
+  - Add writing to a PostgreSQL database (Comming in December 2026 or January 2027)
