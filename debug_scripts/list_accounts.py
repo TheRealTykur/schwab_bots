@@ -5,7 +5,7 @@ out which hash belongs to which account, then set ACCOUNT_HASH in
 master_config.py to that value so the bot always targets the right one.
 
 Run manually:
-    python3 list_accounts.py
+    python3 -m debug_scripts.list_accounts
 """
 
 import sys
@@ -55,18 +55,15 @@ def main():
         # number -- e.g. "Individual" vs "Roth IRA" vs the account's cash
         # balance, all useful for telling two accounts apart at a glance.
         detail_resp = client.get_account(account_hash)
-        account_type = "?"
         cash_balance = "?"
         if detail_resp.status_code == 200:
             detail = detail_resp.json()
             securities_account = detail.get("securitiesAccount", {})
-            account_type = securities_account.get("type", "?")
             balances = securities_account.get("currentBalances", {})
             cash_balance = balances.get("cashBalance", "?")
 
         print(f"[{i}] Account Number: {account_number}")
         print(f"    Account Hash:   {account_hash}")
-        print(f"    Type:           {account_type}")
         print(f"    Cash Balance:   {cash_balance}")
         print()
 

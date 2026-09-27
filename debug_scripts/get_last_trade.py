@@ -10,10 +10,10 @@ enabling Thinkorswim), while Transactions is the permanent settlement
 ledger and isn't affected by that.
 
 Run manually:
-    python3 get_last_trade.py
+    python3 -m debug_scripts.get_last_trade <bot area>
 
-Uses the same config.py and cached token as schwab_bot.py, but is otherwise
-independent -- it's not called by the daily cron job.
+Uses the config.py and cached token as the bot you called it with (dca, balance, ect.), but is otherwise
+independent - it's not called by the daily cron job.
 """
 
 import json

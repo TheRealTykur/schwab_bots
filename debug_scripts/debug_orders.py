@@ -5,7 +5,7 @@ why get_last_trade.py isn't finding filled orders -- most likely causes are
 either the wrong account being queried, or a date-range edge case.
 
 Run manually:
-    python3 debug_orders.py
+    python3 -m debug_scripts.debug_orders <(balance, dca)>
 """
 
 import sys
