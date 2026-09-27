@@ -21,7 +21,17 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 
-import config
+from config import master as master_config
+if len(sys.argv) != 2 :
+    print("Useage: python3 -m debug.check_holdings <which bot config> (example: dca, balance)")
+    sys.exit("Usage Error")
+match sys.argv[1].lower():
+    case "dca":
+        from bots.dca import config
+    case "balance":
+        from bots.balance import config
+    case _:
+        sys.exit("Incalid Config")
 
 try:
     from schwab.auth import easy_client
@@ -39,14 +49,14 @@ DATE_FIELD_CANDIDATES = ("time", "tradeDate", "transactionDate", "settlementDate
 
 
 def get_client():
-    if not config.Master_Config.API_KEY or not config.Master_Config.APP_SECRET:
+    if not master_config.API_KEY or not master_config.APP_SECRET:
         print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     return easy_client(
-        api_key=config.Master_Config.API_KEY,
-        app_secret=config.Master_Config.APP_SECRET,
-        callback_url=config.Master_Config.CALLBACK_URL,
-        token_path=config.Master_Config.TOKEN_PATH,
+        api_key=master_config.API_KEY,
+        app_secret=master_config.APP_SECRET,
+        callback_url=master_config.CALLBACK_URL,
+        token_path=master_config.TOKEN_PATH,
     )
 
 
