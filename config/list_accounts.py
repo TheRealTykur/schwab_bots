@@ -5,7 +5,7 @@ out which hash belongs to which account, then set ACCOUNT_HASH in
 master_config.py to that value so the bot always targets the right one.
 
 Run manually:
-    python3 -m debug_scripts.list_accounts
+    python3 -m config.list_accounts
 """
 
 import sys

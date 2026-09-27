@@ -294,14 +294,5 @@ python3 -m pytest
 
 The following items were identified during the code review and still need to be addressed.
 
-- [ ] **Fix the diagnostic scripts**
-  - `debug_scripts` all use old way of inculding before change to modules 
-
-- [ ] **Clean up duplicated configuration**
-  - `debug_scripts/config.py` contains configuration that overlaps with `config/master.py`.
-
-- [ ] **Centralize authentication configuration**
-  - Make the debug scripts use the same master configuration as the production bots.
-
 - [ ] **Add Database Support**
   - Add writing to a PostgreSQL database (Comming in December 2026 or January 2027)
