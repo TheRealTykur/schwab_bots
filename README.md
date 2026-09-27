@@ -303,8 +303,5 @@ The following items were identified during the code review and still need to be 
 - [ ] **Centralize authentication configuration**
   - Make the debug scripts use the same master configuration as the production bots.
 
-- [ ] **Improve `setup_auth.py`**
-  - Standardize its package imports with the rest of the project.
-
 - [ ] **Add Database Support**
   - Add writing to a PostgreSQL database (Comming in December 2026 or January 2027)
