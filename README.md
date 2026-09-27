@@ -112,7 +112,7 @@ mkdir -p config/tokens
 Then run:
 
 ```bash
-python3 config/setup_auth.py
+python3 config/setup_schwab_auth_token.py
 ```
 
 The authentication process will open the Schwab authorization flow.

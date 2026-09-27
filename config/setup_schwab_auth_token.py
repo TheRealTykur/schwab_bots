@@ -5,7 +5,7 @@ any orders -- it exists so you can do the browser login step on its own,
 without running the full bot.
 
 Run this once a week to keep token fresh idealy on Sundays (on a machine with a browser -- see README):
-    python3 setup_auth.py
+    python3 setup_schwab_auth_token.py
 
 If schwab_token.json already exists and is still valid, this just confirms
 it works instead of re-triggering the browser login.
