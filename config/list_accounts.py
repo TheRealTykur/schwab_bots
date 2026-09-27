@@ -2,14 +2,14 @@
 Standalone script: lists every Schwab account linked to this API token,
 showing the account number and its corresponding hash. Use this to figure
 out which hash belongs to which account, then set ACCOUNT_HASH in
-config.py to that value so the bot always targets the right one.
+master_config.py to that value so the bot always targets the right one.
 
 Run manually:
-    python3 list_accounts.py
+    python3 -m config.list_accounts
 """
 
 import sys
-import config
+from config import master as master_config
 
 try:
     from schwab.auth import easy_client
@@ -22,14 +22,14 @@ except ImportError:
 # Returns client
 ###################
 def get_client():
-    if not config.API_KEY or not config.APP_SECRET:
+    if not master_config.API_KEY or not master_config.APP_SECRET:
         print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     client = easy_client(
-        api_key=config.API_KEY,
-        app_secret=config.APP_SECRET,
-        callback_url=config.CALLBACK_URL,
-        token_path=config.TOKEN_PATH,
+        api_key=master_config.API_KEY,
+        app_secret=master_config.APP_SECRET,
+        callback_url=master_config.CALLBACK_URL,
+        token_path=master_config.TOKEN_PATH,
     )
     return client
 
@@ -55,18 +55,15 @@ def main():
         # number -- e.g. "Individual" vs "Roth IRA" vs the account's cash
         # balance, all useful for telling two accounts apart at a glance.
         detail_resp = client.get_account(account_hash)
-        account_type = "?"
         cash_balance = "?"
         if detail_resp.status_code == 200:
             detail = detail_resp.json()
             securities_account = detail.get("securitiesAccount", {})
-            account_type = securities_account.get("type", "?")
             balances = securities_account.get("currentBalances", {})
             cash_balance = balances.get("cashBalance", "?")
 
         print(f"[{i}] Account Number: {account_number}")
         print(f"    Account Hash:   {account_hash}")
-        print(f"    Type:           {account_type}")
         print(f"    Cash Balance:   {cash_balance}")
         print()
 

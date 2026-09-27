@@ -8,7 +8,8 @@ The repository currently contains:
 - **Rebalance bot**: buys underweight securities based on configured target allocations.
 - **Shared configuration**: Schwab API credentials, callback URL, token location, and timezone.
 - **Support code**: shared account and market-data utilities.
-- **Test scripts**: tools for checking authentication and linked Schwab accounts.
+- **Tests**: some Unit Tests to verifiy i didnt break any logic
+- **Debug scripts**: tools for checking authentication and linked Schwab accounts.
 
 > **Warning:** These bots can place real trades. Keep `DRY_RUN = True` while you set up and test.
 
@@ -112,7 +113,7 @@ mkdir -p config/tokens
 Then run:
 
 ```bash
-python3 config/setup_auth.py
+python3 -m config.setup_schwab_auth_token
 ```
 
 The authentication process will open the Schwab authorization flow.
@@ -192,7 +193,7 @@ If you have multiple Schwab accounts, set this explicitly.
 You can use:
 
 ```bash
-python3 test_scripts/list_accounts.py
+python3 -m config.list_accounts
 ```
 
 to see the accounts and account hashes available to the authenticated user.
@@ -291,17 +292,10 @@ python3 -m pytest
 ---
 
 # Work in Progress
-
 The following items were identified during the code review and still need to be addressed.
-
-- [ ] **Fix the diagnostic scripts**
-  - `debug_scripts` all use old way of inculding before change to modules 
-
-- [ ] **Clean up duplicated configuration**
-  - `debug_scripts/config.py` contains configuration that overlaps with `config/master.py`.
-
-- [ ] **Centralize authentication configuration**
-  - Make the debug scripts use the same master configuration as the production bots.
 
 - [ ] **Add Database Support**
   - Add writing to a PostgreSQL database (Comming in December 2026 or January 2027)
+
+- [ ] **Add Debug Scripts**
+  - Add more debug scripts for ease of use.

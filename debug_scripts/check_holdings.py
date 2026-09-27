@@ -4,11 +4,21 @@ configured Schwab account. Useful for sanity-checking numbers before
 wiring them into the rebalance bot.
 
 Usage:
-    python check_holdings.py
+    python check_holdings.py 
 """
 
 import sys
-import config
+from config import master as master_config
+if len(sys.argv) != 2 :
+    print("Useage: python3 -m debug.check_holdings <which bot config> (example: dca, balance)")
+    sys.exit("Usage Error")
+match sys.argv[1].lower():
+    case "dca":
+        from bots.dca import config
+    case "balance":
+        from bots.balance import config
+    case _:
+        sys.exit("Incalid Config")
 
 try:
     from schwab.auth import easy_client
@@ -18,15 +28,15 @@ except ImportError:
 
 
 def get_client():
-    if not config.Master_Config.API_KEY or not config.Master_Config.APP_SECRET:
+    if not master_config.API_KEY or not master_config.APP_SECRET:
         print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
         sys.exit(1)
     return easy_client(
-        api_key=config.Master_Config.API_KEY,
-        app_secret=config.Master_Config.APP_SECRET,
-        callback_url=config.Master_Config.CALLBACK_URL,
-        token_path=config.Master_Config.TOKEN_PATH,
-    )
+        api_key=master_config.API_KEY,
+        app_secret=master_config.APP_SECRET,
+        callback_url=master_config.CALLBACK_URL,
+        token_path=master_config.TOKEN_PATH,
+   )
 
 
 def get_account_hash(client):
@@ -47,7 +57,6 @@ def main():
     resp = client.get_account(account_hash, fields=[client.Account.Fields.POSITIONS])
     resp.raise_for_status()
     data = resp.json()
-
     securities_account = data["securitiesAccount"]
     balances = securities_account["currentBalances"]
     cash = float(balances.get("cashBalance", balances.get("cashAvailableForTrading", 0)))
@@ -70,9 +79,7 @@ def main():
             market_value = float(pos.get("marketValue", 0))
             pct = (market_value / total_account_value * 100) if total_account_value else 0
             print(f"{symbol:<10}{quantity:>12.4f}{market_value:>16,.2f}{pct:>11.2f}%")
-
         print(f"\nTotal position value: ${total_position_value:,.2f}")
-
     print(f"Total account value (cash + positions): ${total_account_value:,.2f}")
 
 
