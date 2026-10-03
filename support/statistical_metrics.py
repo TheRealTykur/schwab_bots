@@ -154,3 +154,33 @@ def detect_ma_crossover(client, symbol, short_window=50, long_window=200):
     elif short_ma < long_ma:
         return "death_cross"
     return "no_crossover_data"
+
+
+###################################################################################
+#   Bollinger Bands: a moving-average "channel" that widens or narrows
+#   with recent volatility.
+#
+#     - middle: simple moving average over `period` trading days
+#     - std_dev: standard deviation of closes over that same window
+#     - upper / lower: middle +/- (num_std * std_dev)
+#
+#   Defaults (period=20, num_std=2) match the standard convention -- a
+#   20-day SMA with bands 2 standard deviations out.
+#
+#   Uses population standard deviation (dividing by `period`, not
+#   `period - 1`), the conventional choice for Bollinger Bands.
+#
+#   Returns a dict: {"middle": ..., "upper": ..., "lower": ..., "std_dev": ...}
+###################################################################################
+def get_bollinger_bands(client, symbol, period=20, num_std=2):
+    closes = _get_daily_closes(client, symbol, period)
+    middle = sum(closes) / len(closes)
+    variance = sum((c - middle) ** 2 for c in closes) / len(closes)
+    std_dev = variance ** 0.5
+ 
+    return {
+        "middle": middle,
+        "upper": middle + (num_std * std_dev),
+        "lower": middle - (num_std * std_dev),
+        "std_dev": std_dev,
+    }
