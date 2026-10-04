@@ -20,39 +20,12 @@ match sys.argv[1].lower():
     case _:
         sys.exit("Incalid Config")
 
-try:
-    from schwab.auth import easy_client
-except ImportError:
-    print("schwab-py is not installed. Run: pip install schwab-py")
-    sys.exit(1)
-
-
-def get_client():
-    if not master_config.API_KEY or not master_config.APP_SECRET:
-        print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
-        sys.exit(1)
-    return easy_client(
-        api_key=master_config.API_KEY,
-        app_secret=master_config.APP_SECRET,
-        callback_url=master_config.CALLBACK_URL,
-        token_path=master_config.TOKEN_PATH,
-   )
-
-
-def get_account_hash(client):
-    if config.ACCOUNT_HASH:
-        return config.ACCOUNT_HASH
-    resp = client.get_account_numbers()
-    resp.raise_for_status()
-    accounts = resp.json()
-    if not accounts:
-        raise RuntimeError("No linked Schwab accounts found for this token.")
-    return accounts[0]["hashValue"]
+from support.accounts import get_client, get_hash
 
 
 def main():
     client = get_client()
-    account_hash = get_account_hash(client)
+    account_hash = get_hash(client, config.ACCOUNT_HASH)
 
     resp = client.get_account(account_hash, fields=[client.Account.Fields.POSITIONS])
     resp.raise_for_status()

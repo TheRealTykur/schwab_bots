@@ -102,6 +102,6 @@ def test_rebalance_get_account_hash_uses_configured_hash():
     client = Mock()
 
     with patch.object(config, "ACCOUNT_HASH", "configured-hash"):
-        assert bot.get_account_hash(client) == "configured-hash"
+        assert bot.AccountSupport.get_hash(client, config.ACCOUNT_HASH) == "configured-hash"
 
     client.get_account_numbers.assert_not_called()

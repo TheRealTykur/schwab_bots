@@ -23,23 +23,7 @@ match sys.argv[1].lower():
     case _:
         sys.exit("Incalid Config")
 
-try:
-    from schwab.auth import easy_client
-except ImportError:
-    print("schwab-py is not installed. Run: pip install schwab-py")
-    sys.exit(1)
-
-
-def get_client():
-    if not master_config.API_KEY or not master_config.APP_SECRET:
-        print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
-        sys.exit(1)
-    return easy_client(
-        api_key=master_config.API_KEY,
-        app_secret=master_config.APP_SECRET,
-        callback_url=master_config.CALLBACK_URL,
-        token_path=master_config.TOKEN_PATH,
-    )
+from support.accounts import get_client, get_hash
 
 
 def main():
@@ -57,7 +41,7 @@ def main():
         print(f"  Account Number: {acct.get('accountNumber')}  Hash: {acct.get('hashValue')}")
     print()
 
-    account_hash = config.ACCOUNT_HASH if config.ACCOUNT_HASH else all_accounts[0]["hashValue"]
+    account_hash = get_hash(client, config.ACCOUNT_HASH)
     print(f"Querying orders for account hash: {account_hash}\n")
 
     now = datetime.now(timezone.utc)

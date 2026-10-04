@@ -1,79 +1,55 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from support import account
+import pytest
+
+from support import accounts as account
 
 
-def test_get_cash_balance_reads_cash_balance(fake_response):
+def test_get_hash_uses_configured_hash_without_api_call():
     client = Mock()
-    client.get_account.return_value = fake_response({
-        "securitiesAccount": {
-            "currentBalances": {"cashBalance": 1234.56}
-        }
-    })
 
-    assert account.get_cash_balance(client, "hash") == 1234.56
-    client.get_account.assert_called_once_with("hash")
+    assert account.get_hash(client, "configured-hash") == "configured-hash"
+    client.get_account_numbers.assert_not_called()
 
 
-def test_get_cash_balance_defaults_to_zero(fake_response):
+def test_get_hash_uses_first_account_when_not_configured():
     client = Mock()
-    client.get_account.return_value = fake_response({"securitiesAccount": {}})
+    client.get_account_numbers.return_value.json.return_value = [
+        {"accountNumber": "123", "hashValue": "hash-123"},
+        {"accountNumber": "456", "hashValue": "hash-456"},
+    ]
+    log = Mock()
 
-    assert account.get_cash_balance(client, "hash") == 0.0
-
-
-def test_get_position_quantity_returns_position_quantity(monkeypatch):
-    monkeypatch.setattr(account.market_data, "get_positions", lambda client, account_hash: [
-        {"symbol": "VOO", "quantity": 3, "market_value": 1500},
-    ])
-
-    assert account.get_position_quantity(Mock(), "hash", "VOO") == 3
+    assert account.get_hash(client, "", log) == "hash-123"
+    log.warning.assert_called_once()
 
 
-def test_get_position_quantity_returns_zero_when_not_held(monkeypatch):
-    monkeypatch.setattr(account.market_data, "get_positions", lambda client, account_hash: [])
-
-    assert account.get_position_quantity(Mock(), "hash", "VOO") == 0
-
-
-def test_get_portfolio_value_reads_liquidation_value(fake_response):
+def test_get_hash_does_not_warn_for_single_account():
     client = Mock()
-    client.get_account.return_value = fake_response({
-        "securitiesAccount": {
-            "currentBalances": {"liquidationValue": 9876.54}
-        }
-    })
+    client.get_account_numbers.return_value.json.return_value = [
+        {"accountNumber": "123", "hashValue": "hash-123"},
+    ]
+    log = Mock()
 
-    assert account.get_portfolio_value(client, "hash") == 9876.54
+    assert account.get_hash(client, "", log) == "hash-123"
+    log.warning.assert_not_called()
 
 
-def test_get_account_snapshot_returns_cash_and_requested_positions(fake_response):
+def test_get_hash_raises_when_no_accounts():
     client = Mock()
-    client.Account.Fields.POSITIONS = "POSITIONS"
-    client.get_account.return_value = fake_response({
-        "securitiesAccount": {
-            "currentBalances": {"cashBalance": 5000},
-            "positions": [
-                {
-                    "instrument": {"symbol": "VOO"},
-                    "marketValue": 2500,
-                },
-                {
-                    "instrument": {"symbol": "SCHD"},
-                    "marketValue": 1000,
-                },
-                {
-                    "instrument": {"symbol": "OTHER"},
-                    "marketValue": 9999,
-                },
-            ],
-        }
-    })
+    client.get_account_numbers.return_value.json.return_value = []
 
-    cash, positions = account.get_account_snapshot(
-        client, "hash", ["VOO", "SCHD", "SWPPX"]
+    with pytest.raises(RuntimeError, match="No linked Schwab accounts"):
+        account.get_hash(client)
+
+
+def test_get_client_uses_master_config():
+    with patch.object(account.master_config, "API_KEY", "api-key"),          patch.object(account.master_config, "APP_SECRET", "app-secret"),          patch.object(account, "easy_client", return_value="client") as easy_client:
+        assert account.get_client() == "client"
+
+    easy_client.assert_called_once_with(
+        api_key="api-key",
+        app_secret="app-secret",
+        callback_url=account.master_config.CALLBACK_URL,
+        token_path=account.master_config.TOKEN_PATH,
     )
-
-    assert cash == 5000.0
-    assert positions == {"VOO": 2500.0, "SCHD": 1000.0, "SWPPX": 0.0}
-    client.get_account.assert_called_once_with("hash", fields=["POSITIONS"])
