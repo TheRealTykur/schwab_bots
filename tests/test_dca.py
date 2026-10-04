@@ -10,7 +10,7 @@ from bots.dca import config
 def test_get_account_hash_uses_configured_account_hash():
     client = Mock()
     with patch.object(config, "ACCOUNT_HASH", "configured-hash"):
-        assert bot.get_account_hash(client) == "configured-hash"
+        assert bot.AccountSupport.get_hash(client, config.ACCOUNT_HASH) == "configured-hash"
     client.get_account_numbers.assert_not_called()
 
 
@@ -22,7 +22,7 @@ def test_get_account_hash_uses_first_linked_account_when_unconfigured():
     ]
 
     with patch.object(config, "ACCOUNT_HASH", ""):
-        assert bot.get_account_hash(client) == "hash-123"
+        assert bot.AccountSupport.get_hash(client, config.ACCOUNT_HASH) == "hash-123"
 
     client.get_account_numbers.return_value.raise_for_status.assert_called_once()
 
@@ -33,7 +33,7 @@ def test_get_account_hash_raises_when_no_accounts():
 
     with patch.object(config, "ACCOUNT_HASH", ""):
         with pytest.raises(RuntimeError, match="No linked Schwab accounts"):
-            bot.get_account_hash(client)
+            bot.AccountSupport.get_hash(client, config.ACCOUNT_HASH)
 
 
 def test_place_buy_dry_run_does_not_submit_order():
@@ -101,8 +101,8 @@ def test_place_buy_does_not_retry_client_error():
 def test_main_skips_purchase_when_cash_is_insufficient():
     client = Mock()
 
-    with patch.object(bot, "get_client", return_value=client), \
-         patch.object(bot, "get_account_hash", return_value="hash"), \
+    with patch.object(bot.AccountSupport, "get_client", return_value=client), \
+         patch.object(bot.AccountSupport, "get_hash", return_value="hash"), \
          patch.object(bot.MarketData, "get_current_price", return_value=100.0), \
          patch.object(bot.AccountSupport, "get_cash_balance", return_value=100.0), \
          patch.object(bot, "place_buy") as place_buy:
@@ -117,8 +117,8 @@ def test_main_places_purchase_when_cash_is_sufficient():
     with patch.object(config, "SYMBOL", "VOO"), \
          patch.object(config, "DAILY_SHARE_QUANTITY", 2), \
          patch.object(config, "CASH_BUFFER_MULTIPLIER", 1.05), \
-         patch.object(bot, "get_client", return_value=client), \
-         patch.object(bot, "get_account_hash", return_value="hash"), \
+         patch.object(bot.AccountSupport, "get_client", return_value=client), \
+         patch.object(bot.AccountSupport, "get_hash", return_value="hash"), \
          patch.object(bot.MarketData, "get_current_price", return_value=100.0), \
          patch.object(bot.AccountSupport, "get_cash_balance", return_value=250.0), \
          patch.object(bot, "place_buy") as place_buy:

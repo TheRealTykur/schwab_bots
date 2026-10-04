@@ -28,14 +28,13 @@ import logging
 import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from support import account as AccountSupport
+from support import accounts as AccountSupport
 from support import market_data as MarketData
 
 from bots.balance import config
 from config import master as master_config
 
 try:
-    from schwab.auth import easy_client
     from schwab.orders.equities import equity_buy_market
 except ImportError:
     print("schwab-py is not installed. Run: pip install schwab-py")
@@ -114,46 +113,6 @@ def plan_buys(cash, position_values, prices):
 
     return {ticker: n for ticker, n in shares_to_buy.items() if n > 0}
 
-###################
-# Returns client
-###################
-def get_client():
-    if not master_config.API_KEY or not master_config.APP_SECRET:
-        log.error("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
-        sys.exit(1)
-    client = easy_client(
-        api_key=master_config.API_KEY,
-        app_secret=master_config.APP_SECRET,
-        callback_url=master_config.CALLBACK_URL,
-        token_path=master_config.TOKEN_PATH,
-    )
-    return client
-
-
-#################################################
-# Returns account hash if it is defined in the 
-# config file otherwise it will fetch the first
-# hash attached to the account
-#################################################
-def get_account_hash(client):
-    if config.ACCOUNT_HASH:
-        return config.ACCOUNT_HASH
-
-    resp = client.get_account_numbers()
-    resp.raise_for_status()
-    accounts = resp.json()
-    if not accounts:
-        raise RuntimeError("No linked Schwab accounts found for this token.")
-    if len(accounts) > 1:
-        log.warning(
-            "Multiple linked accounts found and ACCOUNT_HASH is not set in "
-            "master_config.py -- defaulting to the first one (%s). Run "
-            "list_accounts.py to see all of them and set ACCOUNT_HASH "
-            "explicitly to avoid relying on this default.",
-            accounts[0]["accountNumber"],
-        )
-    return accounts[0]["hashValue"]
-
 # --- order placement -----------------------------------------------------------
 
 def place_buy(client, account_hash, symbol, quantity, price):
@@ -181,8 +140,8 @@ def main():
 
     log.info("=== Run start %s (DRY_RUN=%s) ===", today_str, config.DRY_RUN)
 
-    client = get_client()
-    account_hash = get_account_hash(client)
+    client = AccountSupport.get_client()
+    account_hash = AccountSupport.get_hash(client, config.ACCOUNT_HASH, log)
 
     cash, position_values = AccountSupport.get_account_snapshot(client, account_hash, config.TARGETS)
     prices = MarketData.get_current_prices(client, list(config.TARGETS.keys()))

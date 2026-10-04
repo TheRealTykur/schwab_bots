@@ -33,11 +33,7 @@ match sys.argv[1].lower():
     case _:
         sys.exit("Incalid Config")
 
-try:
-    from schwab.auth import easy_client
-except ImportError:
-    print("schwab-py is not installed. Run: pip install schwab-py")
-    sys.exit(1)
+from support.accounts import get_client, get_hash
 
 
 LAST_TRADE_OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "last_trade.json")
@@ -47,29 +43,6 @@ LAST_TRADE_OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "last_trade.jso
 # Schwab's schema varies by transaction type.
 DATE_FIELD_CANDIDATES = ("time", "tradeDate", "transactionDate", "settlementDate")
 
-
-def get_client():
-    if not master_config.API_KEY or not master_config.APP_SECRET:
-        print("SCHWAB_API_KEY / SCHWAB_APP_SECRET are not set as environment variables.")
-        sys.exit(1)
-    return easy_client(
-        api_key=master_config.API_KEY,
-        app_secret=master_config.APP_SECRET,
-        callback_url=master_config.CALLBACK_URL,
-        token_path=master_config.TOKEN_PATH,
-    )
-
-
-def get_account_hash(client):
-    if config.ACCOUNT_HASH:
-        return config.ACCOUNT_HASH
-
-    resp = client.get_account_numbers()
-    resp.raise_for_status()
-    accounts = resp.json()
-    if not accounts:
-        raise RuntimeError("No linked Schwab accounts found for this token.")
-    return accounts[0]["hashValue"]
 
 
 def _transaction_sort_key(txn):
@@ -104,7 +77,7 @@ def get_last_trade_transaction(client, account_hash):
 
 def main():
     client = get_client()
-    account_hash = get_account_hash(client)
+    account_hash = get_hash(client, config.ACCOUNT_HASH)
 
     transaction = get_last_trade_transaction(client, account_hash)
     if transaction is None:
